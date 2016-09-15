@@ -1,29 +1,56 @@
 package todo;
+
 import done.*;
 import se.lth.cs.realtime.semaphore.Semaphore;
 import se.lth.cs.realtime.semaphore.MutexSem;
 
-public class AlarmClock extends Thread {
+public class AlarmClock {
 
-	private static ClockInput	input;
-	private static ClockOutput	output;
-	private static Semaphore	sem; 
+	private static ClockInput input;
+	private static ClockOutput output;
+	public Semaphore outsem;
+	public int s = 0;
+	public int m = 0;
+	public int h = 0;
+	public int as = 0;
+	public int am = 0;
+	public int ah = 0;
 
 	public AlarmClock(ClockInput i, ClockOutput o) {
 		input = i;
 		output = o;
-		sem = input.getSemaphoreInstance();
+		this.outsem = new MutexSem();
 	}
 
-	// The AlarmClock thread is started by the simulator. No
-	// need to start it by yourself, if you do you will get
-	// an IllegalThreadStateException. The implementation
-	// below is a simple alarmclock thread that beeps upon 
-	// each keypress. To be modified in the lab.
-	public void run() {
-		while (true) {
-			sem.take();
-			output.doAlarm();
-		}
+	public void start() {
+		StateMachine sm = new StateMachine(this, input);
+		ClockTicker CT = new ClockTicker(this);
+		CT.start();
+		sm.start();
 	}
+
+	public void showTime() {
+		output.showTime((h * 10000) + (m * 100) + (s));
+
+	}
+
+	public void setTime(int time) {
+		int temp = time;
+		h = temp / 10000;
+		temp -= h * 10000;
+		m = temp / 100;
+		temp -= m * 100;
+		s = temp;
+	}
+
+	public void setAlarmTime(int next) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public Semaphore getSemaphoreInstance() {
+		// TODO Auto-generated method stub
+		return outsem;
+	}
+
 }
